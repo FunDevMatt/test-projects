@@ -9,6 +9,9 @@ function twoNumberSum(array, targetSum) {
             answer = [num, numForGoal]
         }
     })
+    if (answer.length === 0) {
+        return "no matches"
+    }
     return answer.sort((a, b) => a - b);
 }
-console.log(twoNumberSum([4, 6, 1, -3], 3));
+console.log(twoNumberSum([0, 0], 3));

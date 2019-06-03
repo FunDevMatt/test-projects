@@ -14,4 +14,8 @@ function twoNumberSum(array, targetSum) {
     }
     return answer.sort((a, b) => a - b);
 }
-console.log(twoNumberSum([0, 0], 3));
+
+module.exports = twoNumberSum;
+
+
+console.log(twoNumberSum([1, 2, 3, 4, 4], 8))

@@ -20,6 +20,19 @@ class Person extends Model {
     static get tableName() {
         return 'people';
     }
+
+    static get relationMappings() {
+        return {
+            pets: {
+                relation: Model.HasManyRelation,
+                modelClass: Pet,
+                join: {
+                    from: 'people.id',
+                    to: 'pets.ownerId'
+                }
+            }
+        };
+    }
 }
 
 
@@ -34,30 +47,66 @@ async function createSchema() {
     });
 }
 
-let populatePeople = async () => {
-    await Person
-        .query()
-        .insert({ firstName: "Matt" })
-    await Person
-        .query()
-        .insert({ firstName: "Greg" })
-    await Person
-        .query()
-        .insert({ firstName: "Charles" })
 
 
+
+
+class Pet extends Model {
+    static get tableName() {
+        return 'pets';
+    }
+
+    static get relationMappings() {
+        return {
+            owner: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: Person,
+                join: {
+                    from: 'pets.ownerId',
+                    to: 'peeople.id'
+                }
+            }
+        };
+    }
 }
+
+async function createPetsTable() {
+    if (await knex.schema.hasTable('pets')) {
+        return;
+    }
+
+    await knex.schema.createTable('pets', table => {
+        table.increments('id').primary();
+        table.bigInteger('ownerId').notNullable
+        table.string('name');
+    });
+}
+
+
 
 let runStartUp = async () => {
     try {
         await createSchema();
-        await populatePeople();
+        await createPetsTable()
         knex.destroy();
     } catch (e) {
         console.log(e)
     }
 }
 
-runStartUp()
+let testQueries = async () => {
+    const person = await Person.query().findById(1);
 
 
+    const people = await Person.query()
+        .eager('pets')
+        .modifyEager('pets', builder => {
+            builder.where('name', '=', 'Toby').select('ownerId', 'name')
+        });
+
+
+    console.log(people[0].pets)
+
+}
+
+testQueries()

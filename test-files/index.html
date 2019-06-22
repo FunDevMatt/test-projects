@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .box {
+            width: 200px;
+            height: 50px;
+            background-color: green;
+            top: 0;
+            left: 0;
+            position: absolute;
+            transition: .3s;
+        }
+        #register {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        .playBoard {
+            padding: 0;
+            margin: 0;
+            background-color: aqua;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+        <div id="register">
+                <input type="text" id="name">
+                <button id="start">Start</button>
+        </div>
+    <div class="playBoard">
+    
+        
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const socket = io("http://localhost:2000");
+
+        let button = document.querySelector("#start")
+        let body = document.querySelector(".playBoard");
+
+    
+
+
+        button.addEventListener("click", function() {
+            console.log("CLICKED")
+            let name = document.querySelector("#name").value;
+            socket.emit("new-user", name)
+
+        })
+
+        document.addEventListener("keydown", (e) => {
+            if (e.keyCode === 40) {
+                socket.emit("user-move-down", "user has moved down");
+            }
+
+        })
+
+        // add user on screen
+        socket.on("add-user", (data) => {
+            body.innerHTML += `<div class='box' id=${data.socketId}></div>`
+        })
+
+        // remove players from game that left
+        socket.on("user-left", (data) => {
+            let user = document.getElementById(data);
+            if (user) {
+                user.remove()
+
+            }
+        })
+
+        // positiona all users correctly for new user that joins
+        socket.on("load-current-users", (data) => {
+            let currentPlayers = data;
+            for (let player in data) {
+                let playersTop = data[player].top + "px";
+                let playersLeft = data[player].left + "px";
+                body.innerHTML += `<div class='box' id=${player} style='top: ${playersTop}; left: ${playersLeft}'></div>`
+            }
+        });
+
+        socket.on("move-user-down", (data) => {
+            let player = document.getElementById(data.socketId);
+            player.style.top = data.top + "px";
+        })
+    
+
+
+
+// handle web sockets
+}, true);
+
+
+
+  
+    </script>
+</body>
+</html>
